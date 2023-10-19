@@ -77,6 +77,9 @@ zipp = "==3.13.0"
 sphinx = "*"
 scipy = "*"
 sphinx-rtd-theme = "*"
+flake8 = "*"
+flake8-variables-names = "*"
+pep8-naming = "*"
 
 [dev-packages]
 
