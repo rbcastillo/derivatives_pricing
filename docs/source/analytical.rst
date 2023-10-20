@@ -19,20 +19,16 @@ API Documentation
     :special-members: __init__
     :inherited-members:
 
-.. autoclass:: pricing.analytical.european_options.EuropeanOption
-    :show-inheritance:
-    :members:
-    :special-members: __init__
-    :exclude-members: price, get_gamma
-
 .. autoclass:: pricing.analytical.european_options.EuropeanCall
     :show-inheritance:
     :members:
     :special-members: __init__
+    :exclude-members: __str__, __setattr__
     :inherited-members:
 
 .. autoclass:: pricing.analytical.european_options.EuropeanPut
     :show-inheritance:
     :members:
     :special-members: __init__
+    :exclude-members: __str__, __setattr__
     :inherited-members:

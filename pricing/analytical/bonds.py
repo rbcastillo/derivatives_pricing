@@ -23,7 +23,7 @@ class Bond(ABC):
     def get_principal_repayment_present_value(self):
         if self.compounding == 'discrete':
             pv_p = self.p * (1 + self.r) ** -self.t
-        elif self.compounding == 'discrete':
+        elif self.compounding == 'continuous':
             pv_p = self.p * exp(-self.r * self.t)
         else:
             raise ValueError(f'Compounding type {self.compounding} not recognized, use discrete or continuous')
