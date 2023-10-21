@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseObject(ABC):
+class FinancialProduct(ABC):
     """
     Base object to implement the main methods to be shared across all financial products implementations.
     """
