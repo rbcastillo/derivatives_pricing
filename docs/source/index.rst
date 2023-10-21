@@ -12,6 +12,7 @@ Welcome to derivatives_pricing's documentation!
 
    analytical
    simulation
+   support
 
 
 
