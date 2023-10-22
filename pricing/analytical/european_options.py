@@ -16,7 +16,7 @@ class EuropeanOption(FinancialProduct):
     in the Call and Put specific objects depending on their features.
     """
 
-    __slots__ = ['s', 'k', 'r', 't', 'sigma', 'q', 'd1', 'd2']
+    __slots__ = ['s', 'k', 'r', 't', 'sigma', 'q', '_d1', '_d2']
 
     def __init__(self, s: Union[float, int], k: Union[float, int], r: float, t: Union[float, int], sigma: float,
                  q: float = 0) -> None:
@@ -38,9 +38,24 @@ class EuropeanOption(FinancialProduct):
         object.__setattr__(self, 't', t)
         object.__setattr__(self, 'sigma', sigma)
         object.__setattr__(self, 'q', q)
-        object.__setattr__(self, 'd1', None)
-        object.__setattr__(self, 'd2', None)
-        object.__setattr__(self, '_ignore', ['d1', 'd2', '_ignore'])
+        object.__setattr__(self, '_d1', None)
+        object.__setattr__(self, '_d2', None)
+
+    def __setattr__(self, key, value) -> None:
+        """
+        Method to manage the process of setting and updating object parameters. Only attributes declared in the
+        __init__ method that are not protected or private are allowed to be updated. This avoids adding
+        new attributes or modifying attributes that should only be modified inside the object as a result of
+        certain operations.
+
+        :param key: parameter to be added or updated.
+        :param value: value to be assigned to the parameter.
+        :return: None
+        """
+        super().__setattr__(key, value)
+        if key not in ['_d1', '_d1']:
+            object.__setattr__(self, '_d1', None)
+            object.__setattr__(self, '_d2', None)
 
     def get_d1(self) -> float:
         """
@@ -54,11 +69,11 @@ class EuropeanOption(FinancialProduct):
 
         :return: calculated value for :math:`d1`.
         """
-        if self.d1 is None:
+        if self._d1 is None:
             d1_numerator = log(self.s / self.k) + (self.r - self.q + (self.sigma ** 2) / 2) * self.t
             d1_denominator = self.sigma * sqrt(self.t)
-            object.__setattr__(self, 'd1', d1_numerator / d1_denominator)
-        return self.d1
+            object.__setattr__(self, '_d1', d1_numerator / d1_denominator)
+        return self._d1
 
     def get_d2(self) -> float:
         """
@@ -72,10 +87,10 @@ class EuropeanOption(FinancialProduct):
 
         :return: calculated value for :math:`d2`.
         """
-        if self.d2 is None:
+        if self._d2 is None:
             d1 = self.get_d1()
-            object.__setattr__(self, 'd2', d1 - self.sigma * sqrt(self.t))
-        return self.d2
+            object.__setattr__(self, '_d2', d1 - self.sigma * sqrt(self.t))
+        return self._d2
 
     @abstractmethod
     def price(self) -> float:

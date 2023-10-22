@@ -23,7 +23,6 @@ class Bond(FinancialProduct):
         """
         object.__setattr__(self, 'p', p)
         object.__setattr__(self, 't', t)
-        object.__setattr__(self, '_ignore', ['_ignore'])
 
     def get_present_value_principal_repayment(self, r: float, compounding: str) -> float:
         """

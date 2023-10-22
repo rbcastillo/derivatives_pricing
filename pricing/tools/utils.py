@@ -6,7 +6,7 @@ class FinancialProduct(ABC):
     Base object to implement the main methods to be shared across all financial products implementations.
     """
 
-    __slots__ = ['_ignore']
+    __slots__ = []
 
     @abstractmethod
     def __init__(self) -> None:
@@ -22,14 +22,14 @@ class FinancialProduct(ABC):
 
         :return: string representation of the object.
         """
-        attr_values = {attr: getattr(self, attr) for attr in self.__slots__ if attr not in self._ignore}
+        attr_values = {attr: getattr(self, attr) for attr in self.__slots__ if not attr.startswith('_')}
         text_output = f'{self.__class__.__name__} object with parameters {attr_values}'
         return text_output
 
     def __setattr__(self, key, value) -> None:
         """
         Method to manage the process of setting and updating object parameters. Only attributes declared in the
-        __init__ method that do not appear in the _ignore attribute are allowed to be updated. This avoids adding
+        __init__ method that are not protected or private are allowed to be updated. This avoids adding
         new attributes or modifying attributes that should only be modified inside the object as a result of
         certain operations.
 
@@ -37,13 +37,11 @@ class FinancialProduct(ABC):
         :param value: value to be assigned to the parameter.
         :return: None
         """
-        if key not in self.__slots__ or key in self._ignore:
-            valid_attrs = [attr for attr in self.__slots__ if attr not in self._ignore]
+        if key not in self.__slots__ or key.startswith('_'):
+            valid_attrs = [attr for attr in self.__slots__ if not attr.startswith('_')]
             raise ValueError(f'Attribute name <{key}> is not recognized, use values in {valid_attrs}')
-        object.__setattr__(self, key, value)
-        if key not in self._ignore:
-            object.__setattr__(self, 'd1', None)
-            object.__setattr__(self, 'd2', None)
+        else:
+            object.__setattr__(self, key, value)
 
     def update_params(self, **kwargs) -> None:
         """
