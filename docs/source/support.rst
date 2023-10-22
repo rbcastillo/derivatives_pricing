@@ -11,6 +11,8 @@ Currently, the following auxiliary objects are implemented:
 API Documentation
 -----------------
 
+.. _balance:
+
 .. autoclass:: pricing.tools.helper.Balance
     :show-inheritance:
     :members:
