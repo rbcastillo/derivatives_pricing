@@ -88,7 +88,7 @@ class ZeroCouponBond(Bond):
     def get_ytm(self, price: Union[int, float]) -> float:
         """
         Method to calculate the yield to maturity (YTM) of the zero-coupon Bond given the current market price.
-        In the case of the zero-coupon Bond there is a straight-forward closed analytical expression. Please, note
+        In the case of the zero-coupon Bond there is a straight-forward closed test_analytical expression. Please, note
         that the timeframe of reference for the YTM will be that of :math:`t`, i.e., if :math:`t` is measured in
         years, the YTM will be an annualized interest rate.
 

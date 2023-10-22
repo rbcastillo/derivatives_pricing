@@ -1,7 +1,7 @@
-Analytical pricing
+Simulation pricing
 =====================
 
-This module contains pricing tools based on the applicable analytical formulae.
+This module contains pricing tools based on simulation techniques such as Monte Carlo.
 
 Currently, xxx functions are implemented:
 

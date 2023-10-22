@@ -39,7 +39,10 @@ class FinancialProduct(ABC):
         """
         if key not in self.__slots__ or key.startswith('_'):
             valid_attrs = [attr for attr in self.__slots__ if not attr.startswith('_')]
-            raise ValueError(f'Attribute name <{key}> is not recognized, use values in {valid_attrs}')
+            if key not in self.__slots__:
+                raise ValueError(f'Attribute name <{key}> is not recognized, use values in {valid_attrs}')
+            if key.startswith('_'):
+                raise ValueError(f'Attribute <{key}> is protected or private, use values in {valid_attrs}')
         else:
             object.__setattr__(self, key, value)
 

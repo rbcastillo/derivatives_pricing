@@ -168,17 +168,17 @@ class EuropeanOption(FinancialProduct):
 
         :param price: price for the European option observed in the market.
         :param disp: set to True to print convergence messages.
-        :return: implicit volatility for the given market price of the European option.
+        :return: implied volatility for the given market price of the European option.
         """
         base_sigma = self.sigma
-        implicit_volatility = fmin(self._get_price_distance, x0=base_sigma, args=(price,), disp=disp)[0]
+        implied_volatility = fmin(self._get_price_distance, x0=base_sigma, args=(price,), disp=disp)[0]
         self.__setattr__('sigma', base_sigma)
-        return implicit_volatility
+        return implied_volatility
 
 
 class EuropeanCall(EuropeanOption):
     """
-    Implementation of the European Call option valuation by using the analytical expression. The European Call option
+    Implementation of the European Call option valuation by using the test_analytical expression. The European Call option
     provides the holder the right, but not the obligation, to buy an underlying asset, at a predetermined strike price
     on a specified expiration date.
     """
@@ -284,7 +284,7 @@ class EuropeanCall(EuropeanOption):
 
 class EuropeanPut(EuropeanOption):
     """
-    Implementation of the European Put option valuation by using the analytical expression. The European Put option
+    Implementation of the European Put option valuation by using the test_analytical expression. The European Put option
     provides the holder the right, but not the obligation, to sell an underlying asset, at a predetermined strike price
     on a specified expiration date.
     """

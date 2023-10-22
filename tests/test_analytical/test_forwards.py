@@ -23,7 +23,7 @@ class TestPricing(unittest.TestCase):
         self.assertTrue(price_matching)
 
 
-class TestSpecialForwards(unittest.TestCase):
+class TestSpecial(unittest.TestCase):
 
     def test_string_casting(self):
         fw = Forward(s=100, r=0.05, t=5, q=0.02)

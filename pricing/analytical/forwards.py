@@ -7,7 +7,7 @@ from pricing.tools.utils import FinancialProduct
 
 class Forward(FinancialProduct):
     """
-    Implementation of the Forward contract valuation by using the analytical expression. The Forward contract
+    Implementation of the Forward contract valuation by using the test_analytical expression. The Forward contract
     provides the holder the right and the obligation, to buy an underlying asset, at a predetermined forward price
     on a specified expiration date. Usually the forward price is fixed at the beginning of the contract in such way
     that no money is paid in advance for entering the agreement.
