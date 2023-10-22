@@ -44,3 +44,14 @@ class FinancialProduct(ABC):
         if key not in self._ignore:
             object.__setattr__(self, 'd1', None)
             object.__setattr__(self, 'd2', None)
+
+    def update_params(self, **kwargs) -> None:
+        """
+        This method allows updating some or all of the relevant input for the European option class. The kwargs used
+        in the method must match those in the __init__ method.
+
+        :param kwargs: keyword parameter(s) and value(s) to be updated.
+        :return: None.
+        """
+        for param, value in kwargs.items():
+            setattr(self, param, value)

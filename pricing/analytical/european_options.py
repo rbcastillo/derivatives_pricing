@@ -1,27 +1,29 @@
-from abc import ABC, abstractmethod
-from math import sqrt, exp, log
-
 import numpy as np
+
+from abc import abstractmethod
+from math import sqrt, exp, log
 from scipy.optimize import fmin
 from scipy.stats import norm
 from typing import Union
 
+from pricing.tools.utils import FinancialProduct
 
-class EuropeanOption(ABC):
+
+class EuropeanOption(FinancialProduct):
     """
     Generic abstract implementation of the European option object populated with the key auxiliary methods
     shared between Call and Put options. The pricing method is defined as an abstract method to be implemented
     in the Call and Put specific objects depending on their features.
     """
 
-    __slots__ = ['s', 'k', 'r', 't', 'sigma', 'q', 'd1', 'd2', '_ignore']
+    __slots__ = ['s', 'k', 'r', 't', 'sigma', 'q', 'd1', 'd2']
 
     def __init__(self, s: Union[float, int], k: Union[float, int], r: float, t: Union[float, int], sigma: float,
                  q: float = 0) -> None:
         """
-        Method to initialize the European option class with its relevant input. Please, note that the metrics r, sigma
-        and q must be measured in the same time units as t, i.e., if t is measured in years, r, sigma and q should be
-        annualized terms.
+        Method to initialize the European option class with its relevant input. Please, note that the metrics
+        :math:`r`, :math:`\\sigma` and :math:`q` must be measured in the same time units as :math:`t`, i.e., if
+        :math:`t` is measured in years, :math:`r`, :math:`\\sigma` and :math:`q` should be annualized terms.
 
         :param s: current value for the underlying security.
         :param k: strike price for the option contract.
@@ -30,56 +32,15 @@ class EuropeanOption(ABC):
         :param sigma: volatility level for the underlying security.
         :param q: continuous rate of dividends paid by the underlying security.
         """
-        super().__setattr__('s', s)
-        super().__setattr__('k', k)
-        super().__setattr__('r', r)
-        super().__setattr__('t', t)
-        super().__setattr__('sigma', sigma)
-        super().__setattr__('q', q)
-        super().__setattr__('d1', None)
-        super().__setattr__('d2', None)
-        super().__setattr__('_ignore', ['d1', 'd2', '_ignore'])
-
-    def __str__(self) -> str:
-        """
-        Method to create a string representation of the object. This method outputs the object name and the
-        relevant parameters with their values.
-
-        :return: string representation of the object.
-        """
-        attr_values = {attr: getattr(self, attr) for attr in self.__slots__ if attr not in self._ignore}
-        text_output = f'{self.__class__.__name__} object with parameters {attr_values}'
-        return text_output
-
-    def __setattr__(self, key, value) -> None:
-        """
-        Method to manage the process of setting and updating object parameters. Only attributes declared in the
-        __init__ method that do not appear in the _ignore attribute are allowed to be updated. This avoids adding
-        new attributes or modifying attributes that should only be modified inside the object as a result of
-        certain operations.
-
-        :param key: parameter to be added or updated.
-        :param value: value to be assigned to the parameter.
-        :return: None
-        """
-        if key not in self.__slots__ or key in self._ignore:
-            valid_attrs = set(self.__slots__) - set(self._ignore)
-            raise ValueError(f'Attribute name {key} is not recognized, use values in {valid_attrs}')
-        super().__setattr__(key, value)
-        if key not in self._ignore:
-            super().__setattr__('d1', None)
-            super().__setattr__('d2', None)
-
-    def update_params(self, **kwargs) -> None:
-        """
-        This method allows updating some or all of the relevant input for the European option class. The kwargs used
-        in the method must match those in the __init__ method.
-
-        :param kwargs: keyword parameter(s) and value(s) to be updated.
-        :return: None.
-        """
-        for param, value in kwargs.items():
-            setattr(self, param, value)
+        object.__setattr__(self, 's', s)
+        object.__setattr__(self, 'k', k)
+        object.__setattr__(self, 'r', r)
+        object.__setattr__(self, 't', t)
+        object.__setattr__(self, 'sigma', sigma)
+        object.__setattr__(self, 'q', q)
+        object.__setattr__(self, 'd1', None)
+        object.__setattr__(self, 'd2', None)
+        object.__setattr__(self, '_ignore', ['d1', 'd2', '_ignore'])
 
     def get_d1(self) -> float:
         """
@@ -96,7 +57,7 @@ class EuropeanOption(ABC):
         if self.d1 is None:
             d1_numerator = log(self.s / self.k) + (self.r - self.q + (self.sigma ** 2) / 2) * self.t
             d1_denominator = self.sigma * sqrt(self.t)
-            super().__setattr__('d1', d1_numerator / d1_denominator)
+            object.__setattr__(self, 'd1', d1_numerator / d1_denominator)
         return self.d1
 
     def get_d2(self) -> float:
@@ -113,7 +74,7 @@ class EuropeanOption(ABC):
         """
         if self.d2 is None:
             d1 = self.get_d1()
-            super().__setattr__('d2', d1 - self.sigma * sqrt(self.t))
+            object.__setattr__(self, 'd2', d1 - self.sigma * sqrt(self.t))
         return self.d2
 
     @abstractmethod
@@ -167,7 +128,7 @@ class EuropeanOption(ABC):
         vega = (self.s * sqrt(self.t) * exp(-self.q * self.t) * norm.pdf(d1)) * scale
         return vega
 
-    def _get_price_distance(self, sigma: float, target_price: Union[int, float]):
+    def _get_price_distance(self, sigma: float, target_price: Union[int, float]) -> float:
         """
         Auxiliary method for the calculation of the implied volatility. This method calculates the price of the
         option for a specified volatility of the underlying and returns the absolute difference with the target
@@ -296,7 +257,7 @@ class EuropeanCall(EuropeanOption):
         :return: rho calculated for the European Call option.
         """
         if target not in ['r', 'q']:
-            raise ValueError(f'Target {target} not valid, accepted values are r and q')
+            raise ValueError(f'Target <{target}> not valid, accepted values are r and q')
         if target == 'r':
             d2 = self.get_d2()
             rho = (self.k * self.t * exp(-self.r * self.t) * norm.cdf(d2)) * scale
@@ -402,7 +363,7 @@ class EuropeanPut(EuropeanOption):
         :return: rho calculated for the European Call option.
         """
         if target not in ['r', 'q']:
-            raise ValueError(f'Target {target} not valid, accepted values are r and q')
+            raise ValueError(f'Target <{target}> not valid, accepted values are r and q')
         if target == 'r':
             d2 = self.get_d2()
             rho = (- self.k * self.t * exp(-self.r * self.t) * norm.cdf(-d2)) * scale
