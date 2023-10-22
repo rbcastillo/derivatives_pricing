@@ -33,7 +33,7 @@ class Balance:
 
         :param r: rate of return considered in the balance capitalization.
         :param t: time during which the capitalization process is performed.
-        :param compounding: type of compounding used, acceptable values are discrete and continuous.
+        :param compounding: type of compounding used, accepted values are discrete and continuous.
         :return: capitalized future value of the current balance amount.
         """
         if compounding == 'discrete':
@@ -58,7 +58,7 @@ class Balance:
 
         :param r: rate of return considered in the balance discount.
         :param t: time during which the discount process is performed.
-        :param compounding: type of compounding used, acceptable values are discrete and continuous.
+        :param compounding: type of compounding used, accepted values are discrete and continuous.
         :return: discounted present value of the future balance amount.
         """
         if compounding == 'discrete':
