@@ -1,0 +1,9 @@
+/* Increases the width of the HTMl */
+.wy-nav-content {
+    max-width: 90%;
+}
+
+/* Puts the equation number at the right */
+.eqno {
+    float: right;
+}
