@@ -38,7 +38,8 @@ adheres to a consistent interface whenever possible, achieved through the implem
 programming (OOP) structure. This approach streamlines the experience for users dealing with diverse derivatives 
 within the project.
 
-The following examples showcase typical uses of the tools within the project
+The complete documentation for the project can be found [here](https://derivatives-pricing.readthedocs.io/en/latest/index.html).
+Additionally, the following examples showcase typical uses of the tools within the project
 
 **Example 1**\
 Calculate the forward price for a forward contract where the spot price of the underlying is $100, the underlying does 
