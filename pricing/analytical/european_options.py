@@ -386,26 +386,3 @@ class EuropeanPut(EuropeanOption):
             d1 = self.get_d2()
             rho = (self.t * self.s * exp(-self.q * self.t) * norm.cdf(-d1)) * scale
         return rho
-
-
-if __name__ == '__main__':
-    call = EuropeanCall(s=100, k=120, r=0.05, t=1, sigma=0.2, q=0.02)
-    print(call)
-    print('Call:', round(call.price(), 9))
-    print('Implied vol:', round(call.calc_implied_vol(4.3749), 9))
-    print('Call delta:', round(call.get_delta(), 9))
-    print('Call gamma:', round(call.get_gamma(), 9))
-    print('Call theta:', round(call.get_theta(1), 9))
-    print('Call vega:', round(call.get_vega(), 9))
-    print('Call rho:', round(call.get_rho(), 9))
-
-    print('\n')
-    put = EuropeanPut(s=100, k=120, r=0.05, t=1, sigma=0.2, q=0.02)
-    print(put)
-    print('Put:', round(put.price(), 9))
-    print('Implied vol:', round(put.calc_implied_vol(20.5026), 9))
-    print('Put delta:', round(put.get_delta(), 9))
-    print('Put gamma:', round(put.get_gamma(), 9))
-    print('Put theta:', round(put.get_theta(1), 9))
-    print('Put vega:', round(put.get_vega(), 9))
-    print('Put rho:', round(put.get_rho(), 9))
