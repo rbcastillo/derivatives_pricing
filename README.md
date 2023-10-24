@@ -38,7 +38,7 @@ adheres to a consistent interface whenever possible, achieved through the implem
 programming (OOP) structure. This approach streamlines the experience for users dealing with diverse derivatives 
 within the project.
 
-The complete documentation for the project can be found [here](https://derivatives-pricing.readthedocs.io/en/latest/index.html).
+The complete documentation for the project can be found [here](https://derivatives-pricing.readthedocs.io/en/latest/index.html){:target="_blank"}.
 Additionally, the following examples showcase typical uses of the tools within the project
 
 **Example 1**\
