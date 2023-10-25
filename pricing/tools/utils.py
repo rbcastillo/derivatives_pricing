@@ -48,8 +48,8 @@ class FinancialProduct(ABC):
 
     def update_params(self, **kwargs) -> None:
         """
-        This method allows updating some or all of the relevant input for the European option class. The kwargs used
-        in the method must match those in the __init__ method.
+        This method allows updating some or all of the relevant input for the object. The kwargs used in the
+        method must match those in the __init__ method.
 
         :param kwargs: keyword parameter(s) and value(s) to be updated.
         :return: None.
