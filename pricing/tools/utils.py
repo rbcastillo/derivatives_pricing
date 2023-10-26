@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, Union, Collection
 
 
 class FinancialProduct(ABC):
@@ -74,7 +74,7 @@ class StatisticalProcess(ABC):
 
         :param size:
         """
-        self.size = self._manage_size(size)
+        object.__setattr__(self, 'size', self._manage_size(size))
 
     @staticmethod
     def _manage_size(size: Tuple[int, ...]) -> Tuple[int, ...]:
@@ -127,6 +127,37 @@ class StatisticalProcess(ABC):
             else:
                 raise ValueError(f'Size <{size}> not valid, zero length inner dimensions are not allowed')
         return size
+
+    def _assign_parameters_with_asset_dimension(self, **kwargs) -> None:
+        """
+        Method to assign the parameters that may vary by simulated asset after checking that they are compliant
+        with the expected formats.
+
+        :param kwargs: keyword parameter(s) and value(s) to be verified and assigned.
+        :return: None.
+        """
+        for name, value in kwargs.items():
+            StatisticalProcess._check_parameters_with_asset_dimension(name, value, self.size)
+            object.__setattr__(self, name, value)
+
+    @staticmethod
+    def _check_parameters_with_asset_dimension(name: str, value: Union[Collection[Union[int, float]], int, float],
+                                               size: Tuple[int, ...]) -> None:
+        """
+        Auxiliary method to check, in case that an input applicable across assets is a collection, whether it meets
+        the size requirements to be consistent with the target statistical process output size. If the parameter
+        meets the requirements, the method does nothing. Otherwise, a ValueError exception is raised.
+
+        :param name: name of the parameter to analyze.
+        :param value: value of the parameter to analyze.
+        :param size: target statistical process output size.
+        :return: None
+        """
+        if hasattr(value, '__len__') and not isinstance(value, str):
+            if not len(size) == 3:
+                raise ValueError(f'<{name}> is a collection but there is no asset dimension in size: <{size}>')
+            elif len(value) != size[2]:
+                raise ValueError(f'Length of <{name}> <{value}> does not match the asset dimension in size: <{size}>')
 
     def __str__(self) -> str:
         """

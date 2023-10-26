@@ -49,7 +49,7 @@ class TestStatisticalProcess(unittest.TestCase):
             StatisticalProcess._manage_size(size=())
             self.assertTrue(False)
         except ValueError as error:
-            expected = ValueError(f'Size <()> not valid, at least should have one dimension')
+            expected = ValueError('Size <()> not valid, at least should have one dimension')
             self.assertTrue(type(error) is type(expected) and error.args == expected.args)
 
     def test_size_too_long(self):
@@ -57,7 +57,7 @@ class TestStatisticalProcess(unittest.TestCase):
             StatisticalProcess._manage_size(size=(1, 2, 3, 4))
             self.assertTrue(False)
         except ValueError as error:
-            expected = ValueError(f'Size <(1, 2, 3, 4)> not valid, maximum number of dimensions is 3')
+            expected = ValueError('Size <(1, 2, 3, 4)> not valid, maximum number of dimensions is 3')
             self.assertTrue(type(error) is type(expected) and error.args == expected.args)
 
     def test_size_with_inner_zero(self):
@@ -65,7 +65,7 @@ class TestStatisticalProcess(unittest.TestCase):
             StatisticalProcess._manage_size(size=(10, 0, 10))
             self.assertTrue(False)
         except ValueError as error:
-            expected = ValueError(f'Size <(10, 0, 10)> not valid, zero length inner dimensions are not allowed')
+            expected = ValueError('Size <(10, 0, 10)> not valid, zero length inner dimensions are not allowed')
             self.assertTrue(type(error) is type(expected) and error.args == expected.args)
 
     def test_size_with_single_zero_end(self):
@@ -81,7 +81,30 @@ class TestStatisticalProcess(unittest.TestCase):
             StatisticalProcess._manage_size(size=(0, 0, 0))
             self.assertTrue(False)
         except ValueError as error:
-            expected = ValueError(f'Size <()> not valid, at least should have one dimension')
+            expected = ValueError('Size <()> not valid, at least should have one dimension')
+            self.assertTrue(type(error) is type(expected) and error.args == expected.args)
+
+    def test_valid_parameter_asset_dimension_single_value(self):
+        StatisticalProcess._check_parameters_with_asset_dimension(name='test', value=1, size=(10, 10, 2))
+
+    def test_valid_parameter_asset_dimension_collection(self):
+        StatisticalProcess._check_parameters_with_asset_dimension(name='test', value=[1, 2.5], size=(10, 10, 2))
+
+    def test_parameter_asset_collection_with_no_asset_dimension(self):
+        try:
+            StatisticalProcess._check_parameters_with_asset_dimension(name='test', value=[1, 2.5], size=(10, 10))
+            self.assertTrue(False)
+        except ValueError as error:
+            expected = ValueError('<test> is a collection but there is no asset dimension in size: <(10, 10)>')
+            self.assertTrue(type(error) is type(expected) and error.args == expected.args)
+
+    def test_parameter_asset_collection_with_not_matching_length(self):
+        try:
+            StatisticalProcess._check_parameters_with_asset_dimension(name='test', value=[1, 2.5], size=(10, 10, 5))
+            self.assertTrue(False)
+        except ValueError as error:
+            error_msg = 'Length of <test> <[1, 2.5]> does not match the asset dimension in size: <(10, 10, 5)>'
+            expected = ValueError(error_msg)
             self.assertTrue(type(error) is type(expected) and error.args == expected.args)
 
 
