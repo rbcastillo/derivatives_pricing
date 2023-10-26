@@ -178,9 +178,9 @@ class EuropeanOption(FinancialProduct):
 
 class EuropeanCall(EuropeanOption):
     """
-    Implementation of the European Call option valuation by using the test_analytical expression. The European Call option
-    provides the holder the right, but not the obligation, to buy an underlying asset, at a predetermined strike price
-    on a specified expiration date.
+    Implementation of the European Call option valuation by using the test_analytical expression. The European Call
+    option provides the holder the right, but not the obligation, to buy an underlying asset, at a predetermined
+    strike price on a specified expiration date.
     """
 
     def price(self) -> float:
