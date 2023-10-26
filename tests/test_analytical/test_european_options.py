@@ -120,22 +120,22 @@ class TestSpecial(unittest.TestCase):
     def test_change_existing_param_generic_call(self):
         call = EuropeanCall(s=100, k=120, r=0.05, t=5, sigma=0.2, q=0.02)
         call.t = 10
-        self.assertTrue(call.t == 10)
+        self.assertTrue(call.t == 10 and call._d1 is None)
 
     def test_change_existing_param_generic_put(self):
         put = EuropeanPut(s=100, k=120, r=0.05, t=5, sigma=0.2, q=0.02)
         put.t = 10
-        self.assertTrue(put.t == 10)
+        self.assertTrue(put.t == 10 and put._d1 is None)
 
     def test_change_existing_param_method_call(self):
         call = EuropeanCall(s=100, k=120, r=0.05, t=5, sigma=0.2, q=0.02)
         call.update_params(t=10)
-        self.assertTrue(call.t == 10)
+        self.assertTrue(call.t == 10 and call._d1 is None)
 
     def test_change_existing_param_method_put(self):
         put = EuropeanPut(s=100, k=120, r=0.05, t=5, sigma=0.2, q=0.02)
         put.update_params(t=10)
-        self.assertTrue(put.t == 10)
+        self.assertTrue(put.t == 10 and put._d1 is None)
 
     def test_add_new_param_generic_call(self):
         call = EuropeanCall(s=100, k=120, r=0.05, t=5, sigma=0.2, q=0.02)
