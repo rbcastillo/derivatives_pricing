@@ -72,7 +72,7 @@ class StatisticalProcess(ABC):
         Abstract method for the initialization of each specific object based on its implementation. The size
         attribute, needed across all statistical processes is loaded in this base method.
 
-        :param size:
+        :param size: tuple containing the dimensions of the output statistical process.
         """
         object.__setattr__(self, 'size', self._manage_size(size))
 
@@ -200,3 +200,19 @@ class StatisticalProcess(ABC):
         """
         for param, value in kwargs.items():
             setattr(self, param, value)
+
+    @abstractmethod
+    def generate(self):
+        """
+        Method to calculate the output for the statistical process, the implementation needs to be adjusted for each
+        specific process in its class.
+
+        The output dimensions follow this schema:
+
+        - First axis (necessary): number of time steps simulated.
+        - Second axis (if present): number of independent paths simulated for one asset.
+        - Third axis (if present): number of different assets simulated.
+
+        :return: generated output object for the statistical process.
+        """
+        pass
