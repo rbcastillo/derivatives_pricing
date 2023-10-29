@@ -70,7 +70,7 @@ class StatisticalProcess(ABC):
     __slots__ = ['size', 'periods', 'asset_attributes']
 
     @abstractmethod
-    def __init__(self, size: Tuple[int, ...], periods: int) -> None:
+    def __init__(self, size: Tuple[int, ...], periods: Optional[int]) -> None:
         """
         Abstract method for the initialization of each specific object based on its implementation. The size
         attribute, needed across all statistical processes is loaded in this base method.
