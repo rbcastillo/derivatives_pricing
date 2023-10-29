@@ -107,6 +107,58 @@ class TestStatisticalProcess(unittest.TestCase):
             expected = ValueError(error_msg)
             self.assertTrue(type(error) is type(expected) and error.args == expected.args)
 
+    def test_adjust_valid_parameter_asset_dimension_single_value(self) -> None:
+        value = StatisticalProcess._adjust_parameter_with_asset_dimension(value=1., size=(10, 10, 2))
+        self.assertTrue(np.array_equal(value, np.array([1, 1])))
+
+    def test_adjust_valid_parameter_asset_dimension_collection(self) -> None:
+        value = StatisticalProcess._adjust_parameter_with_asset_dimension(value=[1., 2.5], size=(10, 10, 2))
+        self.assertTrue(np.array_equal(value, np.array([1., 2.5])))
+
+    def test_valid_rho_matrix(self) -> None:
+        rho = np.array([[10., 1., 5.], [1., 10., 5.], [1., 5., 10.]])
+        rho = np.dot(rho, rho.transpose())
+        rho /= np.max(rho)
+        StatisticalProcess._check_rho_properties(rho=rho, n_assets=3)
+
+    def test_rho_matrix_invalid_shape(self) -> None:
+        try:
+            rho = np.array([[1., .5], [.5, 1.]])
+            StatisticalProcess._check_rho_properties(rho=rho, n_assets=3)
+            self.assertTrue(False)
+        except AssertionError as error:
+            expected = AssertionError('rho shape <(2, 2)> does not match n_assets: 3')
+            self.assertTrue(type(error) is type(expected) and error.args == expected.args)
+
+    def test_rho_matrix_not_symmetric(self) -> None:
+        try:
+            rho = np.array([[1., .25, .5], [.25, 1., .75], [1., .25, 1.]])
+            StatisticalProcess._check_rho_properties(rho=rho, n_assets=3)
+            self.assertTrue(False)
+        except AssertionError as error:
+            expected = AssertionError('rho is not symmetric, not a valid correlation matrix')
+            self.assertTrue(type(error) is type(expected) and error.args == expected.args)
+
+    def test_rho_matrix_not_positive_definite(self) -> None:
+        try:
+            rho = np.array([[1., .25, .5], [.25, 1., -.75], [.5, -.75, 1.]])
+            StatisticalProcess._check_rho_properties(rho=rho, n_assets=3)
+            self.assertTrue(False)
+        except AssertionError as error:
+            expected = AssertionError('rho is not positive definite, not a valid correlation matrix')
+            print(error)
+            self.assertTrue(type(error) is type(expected) and error.args == expected.args)
+
+    def test_rho_matrix_invalid_values(self) -> None:
+        try:
+            rho = np.array([[2., .5, 1.], [.5, 2., 1.5], [1., 1.5, 2.]])
+            StatisticalProcess._check_rho_properties(rho=rho, n_assets=3)
+            self.assertTrue(False)
+        except AssertionError as error:
+            expected = AssertionError('rho values outside [-1, 1], not a valid correlation matrix')
+            print(error)
+            self.assertTrue(type(error) is type(expected) and error.args == expected.args)
+
 
 if __name__ == '__main__':
     unittest.main()

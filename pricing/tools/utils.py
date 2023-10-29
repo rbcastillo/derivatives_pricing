@@ -174,6 +174,95 @@ class StatisticalProcess(ABC):
             elif len(value) != size[2]:
                 raise ValueError(f'Length of <{name}> <{value}> does not match the asset dimension in size: <{size}>')
 
+    @staticmethod
+    def _adjust_parameter_with_asset_dimension(value: Union[int, float, Collection[Union[int, float]]],
+                                               size: Tuple[int, ...]) -> np.ndarray:
+        """
+        Auxiliary method to check, in case that an input applicable across assets is a collection, whether it needs
+        some adjustment. If the input is already a numpy ndarray, it is returned as is, if is a collection of
+        other type, it is cast to ndarray and if it is a single numeric value, it is converted into a ndarray with
+        a size matching the asset dimension.
+
+        :param value: value of the parameter to analyze.
+        :param size: target statistical process output size.
+        :return: value object with the required adjustments.
+        """
+        if hasattr(value, '__len__'):
+            value = value if isinstance(value, np.ndarray) else np.array(value)
+        elif len(size) == 3:
+            value = np.array([float(value)] * size[2])
+        return value
+
+    def _check_and_adjust_rho(self, rho: Optional[np.ndarray]) -> np.ndarray:
+        """
+        Method to check whether the correlation matrix rho needs some adjustments before assigning it. The rho matrix
+        is only used when there is asset dimension. If a rho matrix is provided without asset dimension, it will be
+        ignored with a warning.
+
+        If the rho matrix is required but not provided, an identity matrix is generated. Otherwise, the provided
+        rho matrix is checked for inconsistencies and adjusted using the Cholesky transformation.
+
+        :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
+            positive definite matrix with size equal to the number of assets in the asset dimension.
+        :return: rho correlations matrix adjusted as needed.
+        """
+        if len(self.size) == 3:
+            rho = StatisticalProcess._manage_required_rho(rho=rho, n_assets=self.size[2])
+        else:
+            if rho is not None:
+                warnings.warn('A rho input is provided but there is no asset dimension, rho will be ignored')
+            rho = np.array([1.])
+        return rho
+
+    @staticmethod
+    def _manage_required_rho(rho: Optional[np.ndarray], n_assets: int) -> np.ndarray:
+        """
+        Auxiliary method to manage the following cases when there is asset dimension and therefore, a rho matrix
+        is required:
+
+        - Matrix not provided. Independence of assets is assumed and every asset simulations are modelled
+          independently of the rest of assets. As a consequence, an identity matrix is used as rho.
+        - Matrix provided. First, the provided matrix is checked to ensure that it meets all the mathematical
+          properties of a correlation matrix. Then, the matrix is transformed using the Cholesky decomposition in
+          order to make it a lower triangular matrix where the correlation between assets is expressed incrementally.
+
+        :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
+            positive definite matrix with size equal to the number of assets in the asset dimension.
+        :param n_assets: number of assets defined by the size input.
+        :return: rho correlations matrix adjusted as needed.
+        """
+        if rho is None:
+            rho = np.identity(n=n_assets)  # Equivalent to correlation matrix where all assets are independent
+        else:
+            StatisticalProcess._check_rho_properties(rho=rho, n_assets=n_assets)
+            rho = np.linalg.cholesky(rho)  # Lower triangular matrix so that correlation is built incrementally
+        return rho
+
+    @staticmethod
+    def _check_rho_properties(rho: np.ndarray, n_assets: int) -> None:
+        """
+        Auxiliary method to assess that the input rho satisfies all the mathematical properties of a
+        correlation matrix:
+
+        - Shape. The rho matrix must be a square matrix and its dimension must match the number of assets.
+        - Symmetry. The rho matrix must be symmetrical, since correlations are bidirectional.
+        - Eigenvalues. The rho matrix must be definite positive, so (besides the symmetry condition already
+          checked for) all its eigenvalues must be positive
+        - Values. All values in the rho matrix must be within the closed interval [-1, 1], since this is the
+          range of values for valid Pearson correlation coefficients.
+
+        In case any of these properties is not met, an AssertionError is raised.
+
+        :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
+            positive definite matrix with size equal to the number of assets in the asset dimension.
+        :param n_assets: number of assets defined by the size input.
+        :return: None.
+        """
+        assert rho.shape == (n_assets, n_assets), f'rho shape <{rho.shape}> does not match n_assets: {n_assets}'
+        assert np.array_equal(rho, rho.T), 'rho is not symmetric, not a valid correlation matrix'
+        assert np.all(np.linalg.eigvals(rho) > 0), 'rho is not positive definite, not a valid correlation matrix'
+        assert np.max(rho) <= 1 and np.min(rho) >= -1, 'rho values outside [-1, 1], not a valid correlation matrix'
+
     def __str__(self) -> str:
         """
         Method to create a string representation of the object. This method outputs the object name and the
@@ -206,7 +295,15 @@ class StatisticalProcess(ABC):
             value = self._adjust_special_attributes_before_setting(key, value)
             object.__setattr__(self, key, value)
 
-    def update_params(self, **kwargs) -> None:
+    def _adjust_special_attributes_before_setting(self, key: str, value: Any) -> Any:
+        if key in self.asset_attributes:
+            StatisticalProcess._check_parameter_with_asset_dimension(key, value, self.size)
+            value = StatisticalProcess._adjust_parameter_with_asset_dimension(value, self.size)
+        if key == 'rho':
+            value = self._check_and_adjust_rho(value)
+        return value
+
+    def update_params(self, **kwargs: Any) -> None:
         """
         This method allows updating some or all of the relevant input for the European option class. The kwargs used
         in the method must match those in the __init__ method.
