@@ -1,5 +1,8 @@
+import warnings
+import numpy as np
+
 from abc import ABC, abstractmethod
-from typing import Tuple, Union, Collection
+from typing import Tuple, Union, Collection, Any, Optional
 
 
 class FinancialProduct(ABC):
@@ -27,7 +30,7 @@ class FinancialProduct(ABC):
         text_output = f'{self.__class__.__name__} object with parameters {attr_values}'
         return text_output
 
-    def __setattr__(self, key, value) -> None:
+    def __setattr__(self, key: str, value: Any) -> None:
         """
         Method to manage the process of setting and updating object parameters. Only attributes declared in the
         __init__ method that are not protected or private are allowed to be updated. This avoids adding
@@ -47,7 +50,7 @@ class FinancialProduct(ABC):
         else:
             object.__setattr__(self, key, value)
 
-    def update_params(self, **kwargs) -> None:
+    def update_params(self, **kwargs: Any) -> None:
         """
         This method allows updating some or all of the relevant input for the object. The kwargs used in the
         method must match those in the __init__ method.
@@ -64,17 +67,27 @@ class StatisticalProcess(ABC):
     Base object to implement the main methods to be shared across all statistical processes implementations.
     """
 
-    __slots__ = ['size']
+    __slots__ = ['size', 'periods', 'asset_attributes']
 
     @abstractmethod
-    def __init__(self, size: Tuple[int, ...]) -> None:
+    def __init__(self, size: Tuple[int, ...], periods: int) -> None:
         """
         Abstract method for the initialization of each specific object based on its implementation. The size
         attribute, needed across all statistical processes is loaded in this base method.
 
-        :param size: tuple containing the dimensions of the output statistical process.
+        The asset_attributes object is automatically created to store the name of the attributes that are
+        associated to the asset dimension. This way, the appropriate review process is performed when these
+        attributes are modified.
+
+        :param size: tuple containing the dimensions of the output statistical process. The first value represents
+            the number of time steps simulated, the second number (if present) represents the number of independent
+            paths simulated and the third number (if present) represents the number of different assets simulated.
+        :param periods: number of periods per reference time unit. The default is 252 trading days when one year is
+            the reference time unit in which metrics such as returns and volatility are expressed.
         """
         object.__setattr__(self, 'size', self._manage_size(size))
+        object.__setattr__(self, 'periods', periods)
+        object.__setattr__(self, 'asset_attributes', [])
 
     @staticmethod
     def _manage_size(size: Tuple[int, ...]) -> Tuple[int, ...]:
@@ -128,21 +141,23 @@ class StatisticalProcess(ABC):
                 raise ValueError(f'Size <{size}> not valid, zero length inner dimensions are not allowed')
         return size
 
-    def _assign_parameters_with_asset_dimension(self, **kwargs) -> None:
+    def _assign_parameters_with_asset_dimension(self, **kwargs: Union[int, float, Collection]) -> None:
         """
         Method to assign the parameters that may vary by simulated asset after checking that they are compliant
-        with the expected formats.
+        with the expected formats. If a parameter needs some adjustment, it is also managed inside this method.
 
         :param kwargs: keyword parameter(s) and value(s) to be verified and assigned.
         :return: None.
         """
         for name, value in kwargs.items():
-            StatisticalProcess._check_parameters_with_asset_dimension(name, value, self.size)
+            StatisticalProcess._check_parameter_with_asset_dimension(name, value, self.size)
+            value = StatisticalProcess._adjust_parameter_with_asset_dimension(value, self.size)
+            self.asset_attributes.append(name)
             object.__setattr__(self, name, value)
 
     @staticmethod
-    def _check_parameters_with_asset_dimension(name: str, value: Union[Collection[Union[int, float]], int, float],
-                                               size: Tuple[int, ...]) -> None:
+    def _check_parameter_with_asset_dimension(name: str, value: Union[int, float, Collection[Union[int, float]]],
+                                              size: Tuple[int, ...]) -> None:
         """
         Auxiliary method to check, in case that an input applicable across assets is a collection, whether it meets
         the size requirements to be consistent with the target statistical process output size. If the parameter
@@ -151,7 +166,7 @@ class StatisticalProcess(ABC):
         :param name: name of the parameter to analyze.
         :param value: value of the parameter to analyze.
         :param size: target statistical process output size.
-        :return: None
+        :return: None.
         """
         if hasattr(value, '__len__') and not isinstance(value, str):
             if not len(size) == 3:
@@ -170,7 +185,7 @@ class StatisticalProcess(ABC):
         text_output = f'{self.__class__.__name__} object with parameters {attr_values}\n{self.__doc__}'
         return text_output
 
-    def __setattr__(self, key, value) -> None:
+    def __setattr__(self, key: str, value: Any) -> None:
         """
         Method to manage the process of setting and updating object parameters. Only attributes declared in the
         __init__ method that are not protected or private are allowed to be updated. This avoids adding
@@ -188,6 +203,7 @@ class StatisticalProcess(ABC):
             if key.startswith('_'):
                 raise ValueError(f'Attribute <{key}> is protected or private, use values in {valid_attrs}')
         else:
+            value = self._adjust_special_attributes_before_setting(key, value)
             object.__setattr__(self, key, value)
 
     def update_params(self, **kwargs) -> None:
@@ -198,11 +214,11 @@ class StatisticalProcess(ABC):
         :param kwargs: keyword parameter(s) and value(s) to be updated.
         :return: None.
         """
-        for param, value in kwargs.items():
-            setattr(self, param, value)
+        for name, value in kwargs.items():
+            setattr(self, name, value)
 
     @abstractmethod
-    def generate(self):
+    def generate(self) -> np.ndarray:
         """
         Method to calculate the output for the statistical process, the implementation needs to be adjusted for each
         specific process in its class.

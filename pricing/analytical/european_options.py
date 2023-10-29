@@ -4,7 +4,7 @@ from abc import abstractmethod
 from math import sqrt, exp, log
 from scipy.optimize import fmin
 from scipy.stats import norm
-from typing import Union
+from typing import Union, Any
 
 from pricing.tools.utils import FinancialProduct
 
@@ -41,7 +41,7 @@ class EuropeanOption(FinancialProduct):
         object.__setattr__(self, '_d1', None)
         object.__setattr__(self, '_d2', None)
 
-    def __setattr__(self, key, value) -> None:
+    def __setattr__(self, key: str, value: Any) -> None:
         """
         Method to manage the process of setting and updating object parameters. Only attributes declared in the
         __init__ method that are not protected or private are allowed to be updated. This avoids adding
