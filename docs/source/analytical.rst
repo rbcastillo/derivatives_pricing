@@ -10,9 +10,6 @@ Currently, the following methodologies are implemented:
 - :func:`EuropeanCall() <pricing.analytical.european_options.EuropeanCall>`.
 - :func:`EuropeanPut() <pricing.analytical.european_options.EuropeanPut>`.
 
-API Documentation
------------------
-
 .. _zero_coupon_bond:
 
 .. autoclass:: pricing.analytical.bonds.ZeroCouponBond
