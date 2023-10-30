@@ -7,6 +7,9 @@ Currently, the following auxiliary objects are implemented:
 
 - :func:`Balance() <pricing.tools.helper.Balance>`.
 
+API Documentation
+-----------------
+
 .. _balance:
 
 .. autoclass:: pricing.tools.helper.Balance
