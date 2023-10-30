@@ -11,9 +11,6 @@ Currently, the following statistical processes are implemented:
 - :func:`GeometricBrownianMotion() <pricing.simulation.processes.GeometricBrownianMotion>`.
 
 
-API Documentation
------------------
-
 .. autoclass:: pricing.simulation.processes.GaussianWhiteNoise
     :show-inheritance:
     :members:
