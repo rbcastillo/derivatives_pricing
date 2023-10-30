@@ -211,7 +211,6 @@ class StatisticalProcess(ABC):
         else:
             if rho is not None:
                 warnings.warn('A rho input is provided but there is no asset dimension, rho will be ignored')
-            rho = np.array([1.])
         return rho
 
     @staticmethod

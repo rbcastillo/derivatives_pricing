@@ -8,6 +8,7 @@ Currently, the following statistical processes are implemented:
 
 - :func:`GaussianWhiteNoise() <pricing.simulation.processes.GaussianWhiteNoise>`.
 - :func:`GaussianWhiteNoise() <pricing.simulation.processes.Wiener>`.
+- :func:`GaussianWhiteNoise() <pricing.simulation.processes.GeometricBrownianMotion>`.
 
 
 API Documentation
@@ -21,6 +22,13 @@ API Documentation
     :inherited-members:
 
 .. autoclass:: pricing.simulation.processes.Wiener
+    :show-inheritance:
+    :members:
+    :special-members: __init__
+    :exclude-members: __str__, __setattr__
+    :inherited-members:
+
+.. autoclass:: pricing.simulation.processes.GeometricBrownianMotion
     :show-inheritance:
     :members:
     :special-members: __init__
