@@ -4,7 +4,7 @@ from abc import abstractmethod
 from math import sqrt, exp, log
 from scipy.optimize import fmin
 from scipy.stats import norm
-from typing import Union
+from typing import Union, Any
 
 from pricing.tools.utils import FinancialProduct
 
@@ -41,7 +41,7 @@ class EuropeanOption(FinancialProduct):
         object.__setattr__(self, '_d1', None)
         object.__setattr__(self, '_d2', None)
 
-    def __setattr__(self, key, value) -> None:
+    def __setattr__(self, key: str, value: Any) -> None:
         """
         Method to manage the process of setting and updating object parameters. Only attributes declared in the
         __init__ method that are not protected or private are allowed to be updated. This avoids adding
@@ -178,9 +178,9 @@ class EuropeanOption(FinancialProduct):
 
 class EuropeanCall(EuropeanOption):
     """
-    Implementation of the European Call option valuation by using the test_analytical expression. The European Call option
-    provides the holder the right, but not the obligation, to buy an underlying asset, at a predetermined strike price
-    on a specified expiration date.
+    Implementation of the European Call option valuation by using the test_analytical expression. The European Call
+    option provides the holder the right, but not the obligation, to buy an underlying asset, at a predetermined
+    strike price on a specified expiration date.
     """
 
     def price(self) -> float:
@@ -386,26 +386,3 @@ class EuropeanPut(EuropeanOption):
             d1 = self.get_d2()
             rho = (self.t * self.s * exp(-self.q * self.t) * norm.cdf(-d1)) * scale
         return rho
-
-
-if __name__ == '__main__':
-    call = EuropeanCall(s=100, k=120, r=0.05, t=1, sigma=0.2, q=0.02)
-    print(call)
-    print('Call:', round(call.price(), 9))
-    print('Implied vol:', round(call.calc_implied_vol(4.3749), 9))
-    print('Call delta:', round(call.get_delta(), 9))
-    print('Call gamma:', round(call.get_gamma(), 9))
-    print('Call theta:', round(call.get_theta(1), 9))
-    print('Call vega:', round(call.get_vega(), 9))
-    print('Call rho:', round(call.get_rho(), 9))
-
-    print('\n')
-    put = EuropeanPut(s=100, k=120, r=0.05, t=1, sigma=0.2, q=0.02)
-    print(put)
-    print('Put:', round(put.price(), 9))
-    print('Implied vol:', round(put.calc_implied_vol(20.5026), 9))
-    print('Put delta:', round(put.get_delta(), 9))
-    print('Put gamma:', round(put.get_gamma(), 9))
-    print('Put theta:', round(put.get_theta(1), 9))
-    print('Put vega:', round(put.get_vega(), 9))
-    print('Put rho:', round(put.get_rho(), 9))

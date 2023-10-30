@@ -11,9 +11,6 @@ Currently, the following methodologies are implemented:
 - :func:`EuropeanPut() <pricing.analytical.european_options.EuropeanPut>`.
 
 
-API Documentation
------------------
-
 .. _zero_coupon_bond:
 
 .. autoclass:: pricing.analytical.bonds.ZeroCouponBond
