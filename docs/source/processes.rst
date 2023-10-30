@@ -7,8 +7,8 @@ derivatives by simulation.
 Currently, the following statistical processes are implemented:
 
 - :func:`GaussianWhiteNoise() <pricing.simulation.processes.GaussianWhiteNoise>`.
-- :func:`GaussianWhiteNoise() <pricing.simulation.processes.Wiener>`.
-- :func:`GaussianWhiteNoise() <pricing.simulation.processes.GeometricBrownianMotion>`.
+- :func:`Wiener() <pricing.simulation.processes.Wiener>`.
+- :func:`GeometricBrownianMotion() <pricing.simulation.processes.GeometricBrownianMotion>`.
 
 
 API Documentation
