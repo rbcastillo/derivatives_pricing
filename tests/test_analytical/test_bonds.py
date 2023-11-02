@@ -29,7 +29,7 @@ class TestYTMZeroCoupon(unittest.TestCase):
         self.assertTrue(ytm_matching)
 
 
-class TestSpecialZeroCoupon(unittest.TestCase):
+class TestImplementationZeroCoupon(unittest.TestCase):
 
     def test_string_casting(self) -> None:
         zc_bond = ZeroCouponBond(p=1_000, t=5)

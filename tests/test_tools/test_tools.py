@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from pricing.tools.helper import Balance
-from pricing.tools.utils import StatisticalProcess
+from tools.helper import Balance
+from pricing.simulation.processes import StatisticalProcess
 
 
 class TestBalance(unittest.TestCase):

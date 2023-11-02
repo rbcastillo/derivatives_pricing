@@ -1,8 +1,8 @@
 from typing import Union
 
 from pricing.analytical.bonds import ZeroCouponBond
-from pricing.tools.helper import Balance
-from pricing.tools.utils import FinancialProduct
+from tools.helper import Balance
+from pricing.base import FinancialProduct
 
 
 class Forward(FinancialProduct):

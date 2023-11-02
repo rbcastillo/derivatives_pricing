@@ -6,7 +6,7 @@ from scipy.optimize import fmin
 from scipy.stats import norm
 from typing import Union, Any
 
-from pricing.tools.utils import FinancialProduct
+from pricing.base import FinancialProduct
 
 
 class EuropeanOption(FinancialProduct):
