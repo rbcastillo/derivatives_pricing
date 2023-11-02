@@ -53,7 +53,7 @@ class EuropeanOption(FinancialProduct):
         :return: None
         """
         super().__setattr__(key, value)
-        if key not in ['_d1', '_d1']:
+        if key not in ['_d1', '_d2']:
             object.__setattr__(self, '_d1', None)
             object.__setattr__(self, '_d2', None)
 
