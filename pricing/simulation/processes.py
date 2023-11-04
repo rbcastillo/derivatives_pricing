@@ -11,10 +11,10 @@ class StatisticalProcess(ABC):
     Base object to implement the main methods to be shared across all statistical processes implementations.
     """
 
-    __slots__ = ['size', 'periods', 'asset_attributes']
+    __slots__ = ['size', 'sub_periods', 'asset_attributes']
 
     @abstractmethod
-    def __init__(self, size: Tuple[int, ...], periods: Optional[int]) -> None:
+    def __init__(self, size: Tuple[int, ...], sub_periods: Optional[int]) -> None:
         """
         Abstract method for the initialization of each specific object based on its implementation. The size
         attribute, needed across all statistical processes is loaded in this base method.
@@ -26,11 +26,11 @@ class StatisticalProcess(ABC):
         :param size: tuple containing the dimensions of the output statistical process. The first value represents
             the number of time steps simulated, the second number (if present) represents the number of independent
             paths simulated and the third number (if present) represents the number of different assets simulated.
-        :param periods: number of periods per reference time unit. The default is 252 trading days when one year is
-            the reference time unit in which metrics such as returns and volatility are expressed.
+        :param sub_periods: number of sub-periods per reference time unit. The default is 252 trading days when one
+            year is the reference time unit in which metrics such as returns and volatility are expressed.
         """
         object.__setattr__(self, 'size', self._manage_size(size))
-        object.__setattr__(self, 'periods', periods)
+        object.__setattr__(self, 'sub_periods', sub_periods)
         object.__setattr__(self, 'asset_attributes', [])
 
     @staticmethod
@@ -325,7 +325,7 @@ class Wiener(StatisticalProcess):
 
     __slots__ = ['sigma', 'rho', '_u_t', '_w_t']
 
-    def __init__(self, size: Tuple[int, ...], rho: Optional[np.ndarray] = None, periods: int = 252) -> None:
+    def __init__(self, size: Tuple[int, ...], rho: Optional[np.ndarray] = None, sub_periods: int = 252) -> None:
         """
         Method to initialize the Wiener process class with its relevant input.
 
@@ -334,10 +334,10 @@ class Wiener(StatisticalProcess):
             paths simulated and the third number (if present) represents the number of different assets simulated.
         :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
             positive definite matrix with size equal to the number of assets in the asset dimension.
-        :param periods: number of periods per reference time unit. The default is 252 trading days when one year is
-            the reference time unit in which metrics such as returns and volatility are expressed.
+        :param sub_periods: number of sub-periods per reference time unit. The default is 252 trading days when one
+            year is the reference time unit in which metrics such as returns and volatility are expressed.
         """
-        super().__init__(size, periods)
+        super().__init__(size, sub_periods)
         object.__setattr__(self, 'rho', self._check_and_adjust_rho(rho))
         object.__setattr__(self, '_u_t', None)
         object.__setattr__(self, '_w_t', None)
@@ -354,7 +354,7 @@ class Wiener(StatisticalProcess):
 
         :return: generated output object for the statistical process.
         """
-        u_t = GaussianWhiteNoise(size=self.size, sigma=1 / sqrt(self.periods)).generate()
+        u_t = GaussianWhiteNoise(size=self.size, sigma=1 / sqrt(self.sub_periods)).generate()
         object.__setattr__(self, '_u_t', u_t)
         w_0 = np.zeros(shape=(1,) + self.size[1:])  # Set W_0 = 0 according to Wiener process properties
         w_t = np.concatenate((w_0, u_t.cumsum(axis=0)), axis=0)
@@ -378,7 +378,7 @@ class GeometricBrownianMotion(StatisticalProcess):
 
     def __init__(self, size: Tuple[int, ...], s0: Union[float, Collection[float]], mu: Union[float, Collection[float]],
                  sigma: Union[float, Collection[float]], q: Union[float, Collection[float]] = 0,
-                 rho: Optional[np.ndarray] = None, periods: int = 252) -> None:
+                 rho: Optional[np.ndarray] = None, sub_periods: int = 252) -> None:
         """
         Method to initialize the Wiener process class with its relevant input.
 
@@ -388,10 +388,10 @@ class GeometricBrownianMotion(StatisticalProcess):
         :param sigma: standard deviation of the Gaussian process.
         :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
             positive definite matrix with size equal to the number of assets in the asset dimension.
-        :param periods: number of periods per reference time unit. The default is 252 trading days when one year is
-            the reference time unit in which metrics such as returns and volatility are expressed.
+        :param sub_periods: number of sub-periods per reference time unit. The default is 252 trading days when one
+            year is the reference time unit in which metrics such as returns and volatility are expressed.
         """
-        super().__init__(size, periods)
+        super().__init__(size, sub_periods)
         self._assign_parameters_with_asset_dimension(s0=s0, mu=mu, sigma=sigma, q=q)
         object.__setattr__(self, 'rho', rho)
         object.__setattr__(self, '_w_t', None)
@@ -408,9 +408,9 @@ class GeometricBrownianMotion(StatisticalProcess):
 
         :return: generated output object for the statistical process.
         """
-        w_t = Wiener(size=self.size, rho=self.rho, periods=self.periods).generate()
+        w_t = Wiener(size=self.size, rho=self.rho, sub_periods=self.sub_periods).generate()
         object.__setattr__(self, '_w_t', w_t)
-        t = np.arange(0, self.size[0] + 1) / self.periods
+        t = np.arange(0, self.size[0] + 1) / self.sub_periods
         for _ in range(1, len(self.size)):  # Adjust t dimensions
             t = t[:, np.newaxis]
         drift = (self.mu - self.q - .5 * self.sigma ** 2) * t  # Model drift: (μ-q-0.5·σ^2)t
