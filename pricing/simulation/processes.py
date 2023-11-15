@@ -414,6 +414,6 @@ class GeometricBrownianMotion(StatisticalProcess):
         for _ in range(1, len(self.size)):  # Adjust t dimensions
             t = t[:, np.newaxis]
         drift = (self.mu - self.q - .5 * self.sigma ** 2) * t  # Model drift: (μ-q-0.5·σ^2)t
-        s_t = self.s0 * np.exp(drift + (self.sigma * w_t))  # S_t = S_0·exp( (μ-q-0.5·σ^2)t + σ·W_t)
+        s_t = self.s0 * np.exp(drift + self.sigma * w_t)  # S_t = S_0·exp( (μ-q-0.5·σ^2)t + σ·W_t)
         object.__setattr__(self, '_s_t', s_t)
         return s_t
