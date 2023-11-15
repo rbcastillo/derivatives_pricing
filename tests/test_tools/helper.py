@@ -108,7 +108,7 @@ class HelperConfidenceIntervals:
 class HelperStatisticalTests:
 
     @staticmethod
-    def _get_interval_test_ground_truth(tail_pct):
+    def _get_interval_test_ground_truth(tail_pct: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         contrast = ALPHA
         if (len(tail_pct.shape) > 1) and (tail_pct.shape[0] == tail_pct.shape[1]):
             contrast = np.full(tail_pct.shape, ALPHA) + np.identity(len(tail_pct)) * (1 - ALPHA)
