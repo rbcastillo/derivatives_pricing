@@ -48,6 +48,12 @@ class HelperDistributions:
         distribution = process[-1, :] / process[0, :] - 1
         return distribution
 
+    @staticmethod
+    def calc_returns_volatility_distribution(process: np.ndarray) -> np.ndarray:
+        returns = np.log(process[1:] / process[:-1])
+        distribution = returns.std(axis=0, ddof=1)
+        return distribution
+
 
 class HelperConfidenceIntervals:
 
@@ -197,6 +203,22 @@ class HelperRunTests:
                                                              interval_kwargs, expected_absolute=rho)
         return test_result
 
+    @staticmethod
+    def run_cumulative_performance_test(process: np.ndarray, mu: Union[float, np.ndarray],
+                                        q: Union[float, np.ndarray], time_units: int) -> bool:
+        distribution_method = HelperDistributions.calc_performance_distribution
+        expected_performance = np.exp((mu - q) * time_units) - 1
+        test_result = HelperStatisticalTests.test_metric_absolute_only(process, distribution_method,
+                                                                       expected_absolute=expected_performance)
+        return test_result
+
+    @staticmethod
+    def run_returns_volatility_test(process: np.ndarray, sigma: Union[float, np.ndarray], sub_periods: int) -> bool:
+        distribution_method = HelperDistributions.calc_returns_volatility_distribution
+        test_result = HelperStatisticalTests.test_metric_absolute_only(process, distribution_method,
+                                                                       expected_absolute=sigma / sqrt(sub_periods))
+        return test_result
+
 
 class HelperGaussianWhiteNoise(HelperStatisticalTests):
 
@@ -248,6 +270,8 @@ class HelperGBM(HelperStatisticalTests):
         test_results = [HelperRunTests.run_process_mean_test(process_mean, **test_input['mean']),
                         HelperRunTests.run_process_std_absolute_test(process_std, **test_input['std']),
                         HelperRunTests.run_process_rho_test(process, **test_input['rho']),
-                        HelperRunTests.run_shape_test(process - s0, size)]
+                        HelperRunTests.run_shape_test(process - s0, size),
+                        HelperRunTests.run_cumulative_performance_test(process, mu, q, time_units),
+                        HelperRunTests.run_returns_volatility_test(process, sigma, gbm.sub_periods)]
 
         return test_results
