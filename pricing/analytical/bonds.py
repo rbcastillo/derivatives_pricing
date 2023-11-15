@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import Union
 
-from pricing.tools.helper import Balance
-from pricing.tools.utils import FinancialProduct
+from tools.helper import Balance
+from pricing.base import FinancialProduct
 
 
 class Bond(FinancialProduct):
