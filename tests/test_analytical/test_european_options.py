@@ -103,7 +103,7 @@ class TestGreeks(unittest.TestCase):
         self.assertEqual(round(implied_volatility, 9), volatility)
 
 
-class TestSpecial(unittest.TestCase):
+class TestImplementation(unittest.TestCase):
 
     def test_string_casting_call(self) -> None:
         parameters = {'s': 100, 'k': 120, 'r': 0.05, 't': 5, 'sigma': 0.2, 'q': 0.02}

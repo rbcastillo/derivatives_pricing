@@ -5,11 +5,11 @@ This module contains auxiliary tools that help simplify and allow for better sca
 
 Currently, the following auxiliary objects are implemented:
 
-- :func:`Balance() <pricing.tools.helper.Balance>`.
+- :func:`Balance() <tools.helper.Balance>`.
 
 .. _balance:
 
-.. autoclass:: pricing.tools.helper.Balance
+.. autoclass:: tools.helper.Balance
     :show-inheritance:
     :members:
     :special-members: __init__
