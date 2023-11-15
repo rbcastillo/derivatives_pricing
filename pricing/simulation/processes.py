@@ -323,7 +323,7 @@ class Wiener(StatisticalProcess):
     - Variance: the process variance at time step t is t.
     """
 
-    __slots__ = ['sigma', 'rho', '_u_t', '_w_t']
+    __slots__ = ['rho', '_u_t', '_w_t']
 
     def __init__(self, size: Tuple[int, ...], rho: Optional[np.ndarray] = None, sub_periods: int = 252) -> None:
         """
