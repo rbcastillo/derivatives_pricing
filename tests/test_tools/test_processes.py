@@ -113,6 +113,15 @@ class TestGeometricBrownianMotion(unittest.TestCase):
         process = GeometricBrownianMotion(size=size, **params, sub_periods=sub_periods).generate()
         self.assertTrue(all(HelperGBM.calc_tests(gbm, process, size, time_units, 250, **params)))
 
+    def test_consistency(self) -> None:
+        np.random.seed(42)
+        time_units, sub_periods, num_paths, n_assets = 4, 12, 100_000, 3
+        size = (time_units * sub_periods, num_paths, n_assets)
+        params = {'s0': [100, 150, 50], 'mu': [.15, .10, .05], 'sigma': [.20, .10, .15], 'q': [.05, .02, .01],
+                  'rho': np.array([[1., .25, .5], [.25, 1., .75], [.5, .75, 1.]])}
+        process = GeometricBrownianMotion(size=size, **params, sub_periods=sub_periods).generate()
+        self.assertEqual(process[-1].mean().round(9), 138.147905671)
+
 
 if __name__ == '__main__':
     unittest.main()
