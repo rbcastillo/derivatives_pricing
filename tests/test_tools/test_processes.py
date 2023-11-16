@@ -30,7 +30,7 @@ class TestGaussianWhiteNoise(unittest.TestCase):
         np.random.seed(42)
         size, sigma = (250, 100_000, 3), [.25, .5, 1.]
         process = GaussianWhiteNoise(size=size, sigma=sigma).generate()
-        self.assertTrue(process[-1].mean().round(9), 0.002093015)
+        self.assertEqual(process[-1].mean().round(9), 0.002093015)
 
 
 class TestWiener(unittest.TestCase):
@@ -66,7 +66,7 @@ class TestWiener(unittest.TestCase):
         size = (time_units * sub_periods, num_paths, num_assets)
         rho = np.array([[1., .25, .5], [.25, 1., .75], [.5, .75, 1.]])
         process = Wiener(size=size, rho=rho, sub_periods=sub_periods).generate()
-        self.assertTrue(process[-1].mean().round(9), -0.000743865)
+        self.assertEqual(process[-1].mean().round(9), -0.000743865)
 
 
 class TestGeometricBrownianMotion(unittest.TestCase):
