@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from tools.helper import Balance
-from pricing.simulation.processes import StatisticalProcess
+from tools.processes import StatisticalProcess
 
 
 class TestBalance(unittest.TestCase):

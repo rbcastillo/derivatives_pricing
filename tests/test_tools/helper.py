@@ -4,7 +4,7 @@ from typing import Union, Tuple, Optional, Callable, List
 import numpy as np
 from scipy.stats import norm, chi2
 
-from pricing.simulation.processes import Wiener, GeometricBrownianMotion
+from tools.processes import Wiener, GeometricBrownianMotion
 from tests.env_variables import ALPHA, HIGH_TOL, REL_TOL
 
 

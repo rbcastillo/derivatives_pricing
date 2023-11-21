@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from pricing.simulation.processes import GaussianWhiteNoise, Wiener, GeometricBrownianMotion
+from tools.processes import GaussianWhiteNoise, Wiener, GeometricBrownianMotion
 from tests.test_tools.helper import HelperGaussianWhiteNoise, HelperWiener, HelperGBM
 
 
