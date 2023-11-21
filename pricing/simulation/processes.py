@@ -2,8 +2,9 @@ import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
-from typing import Union, Tuple, Collection, Optional, Any
+from scipy.stats import norm, multivariate_normal, lognorm
 from math import sqrt
+from typing import Union, Tuple, Collection, Optional, Any
 
 
 class StatisticalProcess(ABC):
@@ -362,6 +363,30 @@ class Wiener(StatisticalProcess):
         object.__setattr__(self, '_w_t', w_t)
         return w_t
 
+    def generate_distribution(self, num_points: int = 500_000) -> np.ndarray:
+        """
+        Method to calculate the output distribution at the last time step for the statistical process.
+
+        The output dimensions follow this schema:
+
+        - If there is no asset dimension, resulting uni-variate distribution for a single asset with
+          num_points values. In the uni-variate version the output covers the ordered x values for the
+          inverse CDF of probabilities in (1e-10, 1 - 1e-10).
+        - If there is an asset dimension, resulting multi-variate distribution for the number of assets
+          defined in the size attribute with (num_points x num_assets) values. In the multi-variate version
+          the output is obtained via random sampling of the joint distribution.
+
+        :param num_points: number of points used to generate the statistical distribution for the process.
+        :return: generated output object for the statistical process.
+        """
+        mu, sigma = 0, np.sqrt(self.size[0] / self.sub_periods)
+        if len(self.size) < 3:
+            x_space = np.linspace(1e-10, 1 - 1e-10, num_points)
+            w_t = norm(loc=mu, scale=sigma).ppf(x_space)
+        else:
+            w_t = multivariate_normal(mean=[mu] * self.size[2], cov=self.rho * sigma**2).rvs(num_points)
+        return w_t
+
 
 class GeometricBrownianMotion(StatisticalProcess):
     """
@@ -415,4 +440,32 @@ class GeometricBrownianMotion(StatisticalProcess):
         drift = (self.mu - self.q - .5 * self.sigma ** 2) * t  # Model drift: (μ-q-0.5·σ^2)t
         s_t = self.s0 * np.exp(drift + self.sigma * w_t)  # S_t = S_0·exp( (μ-q-0.5·σ^2)t + σ·W_t)
         object.__setattr__(self, '_s_t', s_t)
+        return s_t
+
+    def generate_distribution(self, num_points: int = 500_000) -> np.ndarray:
+        """
+        Method to calculate the output distribution at the last time step for the statistical process.
+
+        The output dimensions follow this schema:
+
+        - If there is no asset dimension, resulting uni-variate distribution for a single asset with
+          num_points values. In the uni-variate version the output covers the ordered x values for the
+          inverse CDF of probabilities in (1e-10, 1 - 1e-10).
+        - If there is an asset dimension, resulting multi-variate distribution for the number of assets
+          defined in the size attribute with (num_points x num_assets) values. In the multi-variate version
+          the output is obtained via random sampling of the joint distribution.
+
+        :param num_points: number of points used to generate the statistical distribution for the process.
+        :return: generated output object for the statistical process.
+        """
+        time_units = self.size[0] / self.sub_periods
+        process_sigma = self.sigma * np.sqrt(time_units)
+        process_scale = self.s0 * np.exp((self.mu - self.q - .5 * self.sigma**2) * time_units)
+        if len(self.size) < 3:
+            x_space = np.linspace(1e-10, 1 - 1e-10, num_points)
+            s_t = lognorm(s=process_sigma, scale=process_scale).ppf(x_space)
+        else:
+            w_t = Wiener(self.size, self.rho, self.sub_periods).generate_distribution(num_points)
+            drift = (self.mu - self.q - .5 * self.sigma ** 2) * time_units
+            s_t = self.s0 * np.exp(drift + self.sigma * w_t)
         return s_t

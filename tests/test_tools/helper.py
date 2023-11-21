@@ -130,7 +130,7 @@ class HelperStatisticalTests:
 
     @staticmethod
     def test_absolute(distribution: np.ndarray, ground_truth: Union[float, np.ndarray]) -> bool:
-        absolute_result = np.allclose(distribution.mean(axis=0), ground_truth, atol=HIGH_TOL, rtol=REL_TOL)
+        absolute_result = np.allclose(distribution, ground_truth, atol=HIGH_TOL, rtol=REL_TOL)
         return absolute_result
 
     @staticmethod
@@ -139,14 +139,14 @@ class HelperStatisticalTests:
         distribution = distribution_method(process)
         lower, upper = interval_method(**interval_kwargs)
         interval_result = HelperStatisticalTests.test_interval(distribution, lower, upper)
-        absolute_result = HelperStatisticalTests.test_absolute(distribution, expected_absolute)
+        absolute_result = HelperStatisticalTests.test_absolute(distribution.mean(axis=0), expected_absolute)
         return all([interval_result, absolute_result])
 
     @staticmethod
     def test_metric_absolute_only(process: np.ndarray, distribution_method: Callable,
                                   expected_absolute: Union[float, np.ndarray]) -> bool:
         distribution = distribution_method(process)
-        absolute_result = HelperStatisticalTests.test_absolute(distribution, expected_absolute)
+        absolute_result = HelperStatisticalTests.test_absolute(distribution.mean(axis=0), expected_absolute)
         return absolute_result
 
 
@@ -250,6 +250,13 @@ class HelperWiener(HelperStatisticalTests):
                         HelperRunTests.run_shape_test(process, size)]
         return test_results
 
+    @staticmethod
+    def calc_distribution_tests(distribution: np.ndarray, mu: Union[float, np.ndarray],
+                                sigma: Union[float, np.ndarray]) -> List[bool]:
+        test_results = [HelperStatisticalTests.test_absolute(distribution.mean(axis=0), ground_truth=mu),
+                        HelperStatisticalTests.test_absolute(distribution.std(axis=0), ground_truth=sigma)]
+        return test_results
+
 
 class HelperGBM(HelperStatisticalTests):
 
@@ -274,4 +281,15 @@ class HelperGBM(HelperStatisticalTests):
                         HelperRunTests.run_cumulative_performance_test(process, mu, q, time_units),
                         HelperRunTests.run_returns_volatility_test(process, sigma, gbm.sub_periods)]
 
+        return test_results
+
+    @staticmethod
+    def calc_distribution_tests(distribution: np.ndarray, time_units: int, mu: Union[float, np.ndarray],
+                                sigma: Union[float, np.ndarray], q: Union[float, List[float]],
+                                s0: Union[float, List[float]]) -> List[bool]:
+        s0, mu, sigma, q = HelperTestUtils.adjust_all_parameters(distribution[np.newaxis], s0, mu, sigma, q)
+        gbm_mean = s0 * np.exp((mu - q) * time_units)
+        gbm_std = np.sqrt(s0 ** 2 * np.exp(2 * (mu - q) * time_units) * (np.exp(time_units * sigma ** 2) - 1))
+        test_results = [HelperStatisticalTests.test_absolute(distribution.mean(axis=0), ground_truth=gbm_mean),
+                        HelperStatisticalTests.test_absolute(distribution.std(axis=0), ground_truth=gbm_std)]
         return test_results
