@@ -81,7 +81,7 @@ class TestGeometricBrownianMotion(unittest.TestCase):
         process = GeometricBrownianMotion(size=size, **params, sub_periods=sub_periods).generate()
         self.assertTrue(all(HelperGBM.calc_tests(gbm, process, size, time_units, 250, **params)))
 
-    def test_wiener_3d_no_correlation(self) -> None:
+    def test_gbm_3d_no_correlation(self) -> None:
         np.random.seed(42)
         time_units, sub_periods, num_paths, n_assets = 4, 12, 100_000, 3
         size = (time_units * sub_periods, num_paths, n_assets)
@@ -91,7 +91,7 @@ class TestGeometricBrownianMotion(unittest.TestCase):
         process = GeometricBrownianMotion(size=size, **params, sub_periods=sub_periods).generate()
         self.assertTrue(all(HelperGBM.calc_tests(gbm, process, size, time_units, 250, **params)))
 
-    def test_wiener_3d_with_correlation(self) -> None:
+    def test_gbm_3d_with_correlation(self) -> None:
         np.random.seed(42)
         time_units, sub_periods, num_paths, n_assets = 4, 12, 100_000, 3
         size = (time_units * sub_periods, num_paths, n_assets)
@@ -102,7 +102,7 @@ class TestGeometricBrownianMotion(unittest.TestCase):
         process = GeometricBrownianMotion(size=size, **params, sub_periods=sub_periods).generate()
         self.assertTrue(all(HelperGBM.calc_tests(gbm, process, size, time_units, 250, **params)))
 
-    def test_wiener_3d_with_correlation_vector_variables(self) -> None:
+    def test_gbm_3d_with_correlation_vector_variables(self) -> None:
         np.random.seed(42)
         time_units, sub_periods, num_paths, n_assets = 4, 12, 100_000, 3
         size = (time_units * sub_periods, num_paths, n_assets)
