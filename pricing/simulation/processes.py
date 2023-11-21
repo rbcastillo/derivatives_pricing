@@ -138,18 +138,18 @@ class StatisticalProcess(ABC):
             value = np.array([float(value)] * size[2])
         return value
 
-    def _check_and_adjust_rho(self, rho: Optional[np.ndarray]) -> np.ndarray:
+    def _check_rho(self, rho: Optional[np.ndarray]) -> np.ndarray:
         """
-        Method to check whether the correlation matrix rho needs some adjustments before assigning it. The rho matrix
-        is only used when there is asset dimension. If a rho matrix is provided without asset dimension, it will be
-        ignored with a warning.
+        Method to check whether the provided correlation matrix rho meets all the mathematical properties of
+        correlation matrices. The rho matrix is only used when there is asset dimension. If a rho matrix is
+        provided without asset dimension, it will be ignored with a warning.
 
         If the rho matrix is required but not provided, an identity matrix is generated. Otherwise, the provided
-        rho matrix is checked for inconsistencies and adjusted using the Cholesky transformation.
+        rho matrix is checked for inconsistencies.
 
         :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
             positive definite matrix with size equal to the number of assets in the asset dimension.
-        :return: rho correlations matrix adjusted as needed.
+        :return: rho correlations matrix.
         """
         if len(self.size) == 3:
             rho = StatisticalProcess._manage_required_rho(rho=rho, n_assets=self.size[2])
@@ -166,20 +166,18 @@ class StatisticalProcess(ABC):
 
         - Matrix not provided. Independence of assets is assumed and every asset simulations are modelled
           independently of the rest of assets. As a consequence, an identity matrix is used as rho.
-        - Matrix provided. First, the provided matrix is checked to ensure that it meets all the mathematical
-          properties of a correlation matrix. Then, the matrix is transformed using the Cholesky decomposition in
-          order to make it a lower triangular matrix where the correlation between assets is expressed incrementally.
+        - Matrix provided. The provided matrix is checked to ensure that it meets all the mathematical
+          properties of a correlation matrix.
 
         :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
             positive definite matrix with size equal to the number of assets in the asset dimension.
         :param n_assets: number of assets defined by the size input.
-        :return: rho correlations matrix adjusted as needed.
+        :return: rho correlations matrix.
         """
         if rho is None:
             rho = np.identity(n=n_assets)  # Equivalent to correlation matrix where all assets are independent
         else:
             StatisticalProcess._check_rho_properties(rho=rho, n_assets=n_assets)
-            rho = np.linalg.cholesky(rho)  # Lower triangular matrix so that correlation is built incrementally
         return rho
 
     @staticmethod
@@ -244,7 +242,7 @@ class StatisticalProcess(ABC):
             StatisticalProcess._check_parameter_with_asset_dimension(key, value, self.size)
             value = StatisticalProcess._adjust_parameter_with_asset_dimension(value, self.size)
         if key == 'rho':
-            value = self._check_and_adjust_rho(value)
+            value = self._check_rho(value)
         return value
 
     def update_params(self, **kwargs: Any) -> None:
@@ -338,7 +336,7 @@ class Wiener(StatisticalProcess):
             year is the reference time unit in which metrics such as returns and volatility are expressed.
         """
         super().__init__(size, sub_periods)
-        object.__setattr__(self, 'rho', self._check_and_adjust_rho(rho))
+        object.__setattr__(self, 'rho', self._check_rho(rho))
         object.__setattr__(self, '_u_t', None)
         object.__setattr__(self, '_w_t', None)
 
@@ -359,7 +357,8 @@ class Wiener(StatisticalProcess):
         w_0 = np.zeros(shape=(1,) + self.size[1:])  # Set W_0 = 0 according to Wiener process properties
         w_t = np.concatenate((w_0, u_t.cumsum(axis=0)), axis=0)
         if len(self.size) == 3:  # If there is an asset dimension, manage the correlation between processes
-            w_t = np.tensordot(w_t, self.rho, axes=(-1, -1))
+            # Cholesky decomposition makes rho a lower triangular matrix so that correlation is built incrementally
+            w_t = np.tensordot(w_t, np.linalg.cholesky(self.rho), axes=(-1, -1))
         object.__setattr__(self, '_w_t', w_t)
         return w_t
 
