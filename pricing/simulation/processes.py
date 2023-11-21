@@ -2,8 +2,9 @@ import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
-from typing import Union, Tuple, Collection, Optional, Any
+from scipy.stats import norm, multivariate_normal, lognorm
 from math import sqrt
+from typing import Union, Tuple, Collection, Optional, Any
 
 
 class StatisticalProcess(ABC):
@@ -138,18 +139,18 @@ class StatisticalProcess(ABC):
             value = np.array([float(value)] * size[2])
         return value
 
-    def _check_and_adjust_rho(self, rho: Optional[np.ndarray]) -> np.ndarray:
+    def _check_rho(self, rho: Optional[np.ndarray]) -> np.ndarray:
         """
-        Method to check whether the correlation matrix rho needs some adjustments before assigning it. The rho matrix
-        is only used when there is asset dimension. If a rho matrix is provided without asset dimension, it will be
-        ignored with a warning.
+        Method to check whether the provided correlation matrix rho meets all the mathematical properties of
+        correlation matrices. The rho matrix is only used when there is asset dimension. If a rho matrix is
+        provided without asset dimension, it will be ignored with a warning.
 
         If the rho matrix is required but not provided, an identity matrix is generated. Otherwise, the provided
-        rho matrix is checked for inconsistencies and adjusted using the Cholesky transformation.
+        rho matrix is checked for inconsistencies.
 
         :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
             positive definite matrix with size equal to the number of assets in the asset dimension.
-        :return: rho correlations matrix adjusted as needed.
+        :return: rho correlations matrix.
         """
         if len(self.size) == 3:
             rho = StatisticalProcess._manage_required_rho(rho=rho, n_assets=self.size[2])
@@ -166,20 +167,18 @@ class StatisticalProcess(ABC):
 
         - Matrix not provided. Independence of assets is assumed and every asset simulations are modelled
           independently of the rest of assets. As a consequence, an identity matrix is used as rho.
-        - Matrix provided. First, the provided matrix is checked to ensure that it meets all the mathematical
-          properties of a correlation matrix. Then, the matrix is transformed using the Cholesky decomposition in
-          order to make it a lower triangular matrix where the correlation between assets is expressed incrementally.
+        - Matrix provided. The provided matrix is checked to ensure that it meets all the mathematical
+          properties of a correlation matrix.
 
         :param rho: optional input matrix containing the correlations between assets. It must be a square symmetric
             positive definite matrix with size equal to the number of assets in the asset dimension.
         :param n_assets: number of assets defined by the size input.
-        :return: rho correlations matrix adjusted as needed.
+        :return: rho correlations matrix.
         """
         if rho is None:
             rho = np.identity(n=n_assets)  # Equivalent to correlation matrix where all assets are independent
         else:
             StatisticalProcess._check_rho_properties(rho=rho, n_assets=n_assets)
-            rho = np.linalg.cholesky(rho)  # Lower triangular matrix so that correlation is built incrementally
         return rho
 
     @staticmethod
@@ -244,7 +243,7 @@ class StatisticalProcess(ABC):
             StatisticalProcess._check_parameter_with_asset_dimension(key, value, self.size)
             value = StatisticalProcess._adjust_parameter_with_asset_dimension(value, self.size)
         if key == 'rho':
-            value = self._check_and_adjust_rho(value)
+            value = self._check_rho(value)
         return value
 
     def update_params(self, **kwargs: Any) -> None:
@@ -338,7 +337,7 @@ class Wiener(StatisticalProcess):
             year is the reference time unit in which metrics such as returns and volatility are expressed.
         """
         super().__init__(size, sub_periods)
-        object.__setattr__(self, 'rho', self._check_and_adjust_rho(rho))
+        object.__setattr__(self, 'rho', self._check_rho(rho))
         object.__setattr__(self, '_u_t', None)
         object.__setattr__(self, '_w_t', None)
 
@@ -359,8 +358,33 @@ class Wiener(StatisticalProcess):
         w_0 = np.zeros(shape=(1,) + self.size[1:])  # Set W_0 = 0 according to Wiener process properties
         w_t = np.concatenate((w_0, u_t.cumsum(axis=0)), axis=0)
         if len(self.size) == 3:  # If there is an asset dimension, manage the correlation between processes
-            w_t = np.tensordot(w_t, self.rho, axes=(-1, -1))
+            # Cholesky decomposition makes rho a lower triangular matrix so that correlation is built incrementally
+            w_t = np.tensordot(w_t, np.linalg.cholesky(self.rho), axes=(-1, -1))
         object.__setattr__(self, '_w_t', w_t)
+        return w_t
+
+    def generate_distribution(self, num_points: int = 500_000) -> np.ndarray:
+        """
+        Method to calculate the output distribution at the last time step for the statistical process.
+
+        The output dimensions follow this schema:
+
+        - If there is no asset dimension, resulting uni-variate distribution for a single asset with
+          num_points values. In the uni-variate version the output covers the ordered x values for the
+          inverse CDF of probabilities in (1e-10, 1 - 1e-10).
+        - If there is an asset dimension, resulting multi-variate distribution for the number of assets
+          defined in the size attribute with (num_points x num_assets) values. In the multi-variate version
+          the output is obtained via random sampling of the joint distribution.
+
+        :param num_points: number of points used to generate the statistical distribution for the process.
+        :return: generated output object for the statistical process.
+        """
+        mu, sigma = 0, np.sqrt(self.size[0] / self.sub_periods)
+        if len(self.size) < 3:
+            x_space = np.linspace(1e-10, 1 - 1e-10, num_points)
+            w_t = norm(loc=mu, scale=sigma).ppf(x_space)
+        else:
+            w_t = multivariate_normal(mean=[mu] * self.size[2], cov=self.rho * sigma**2).rvs(num_points)
         return w_t
 
 
@@ -416,4 +440,32 @@ class GeometricBrownianMotion(StatisticalProcess):
         drift = (self.mu - self.q - .5 * self.sigma ** 2) * t  # Model drift: (μ-q-0.5·σ^2)t
         s_t = self.s0 * np.exp(drift + self.sigma * w_t)  # S_t = S_0·exp( (μ-q-0.5·σ^2)t + σ·W_t)
         object.__setattr__(self, '_s_t', s_t)
+        return s_t
+
+    def generate_distribution(self, num_points: int = 500_000) -> np.ndarray:
+        """
+        Method to calculate the output distribution at the last time step for the statistical process.
+
+        The output dimensions follow this schema:
+
+        - If there is no asset dimension, resulting uni-variate distribution for a single asset with
+          num_points values. In the uni-variate version the output covers the ordered x values for the
+          inverse CDF of probabilities in (1e-10, 1 - 1e-10).
+        - If there is an asset dimension, resulting multi-variate distribution for the number of assets
+          defined in the size attribute with (num_points x num_assets) values. In the multi-variate version
+          the output is obtained via random sampling of the joint distribution.
+
+        :param num_points: number of points used to generate the statistical distribution for the process.
+        :return: generated output object for the statistical process.
+        """
+        time_units = self.size[0] / self.sub_periods
+        process_sigma = self.sigma * np.sqrt(time_units)
+        process_scale = self.s0 * np.exp((self.mu - self.q - .5 * self.sigma**2) * time_units)
+        if len(self.size) < 3:
+            x_space = np.linspace(1e-10, 1 - 1e-10, num_points)
+            s_t = lognorm(s=process_sigma, scale=process_scale).ppf(x_space)
+        else:
+            w_t = Wiener(self.size, self.rho, self.sub_periods).generate_distribution(num_points)
+            drift = (self.mu - self.q - .5 * self.sigma ** 2) * time_units
+            s_t = self.s0 * np.exp(drift + self.sigma * w_t)
         return s_t
