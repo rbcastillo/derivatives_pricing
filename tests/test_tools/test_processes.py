@@ -64,7 +64,7 @@ class TestWiener(unittest.TestCase):
         np.random.seed(42)
         time_units, sub_periods, num_paths = 4, 12, 500_000
         size = (time_units * sub_periods, num_paths)
-        distribution = Wiener(size=size, rho=None, sub_periods=sub_periods).generate_distribution()
+        distribution = Wiener(size=size, rho=None, sub_periods=sub_periods).generate_ending_distribution()
         self.assertTrue(all(HelperWiener.calc_distribution_tests(distribution, mu=0, sigma=np.sqrt(time_units))))
 
     def test_wiener_distribution_3d_with_correlation(self) -> None:
@@ -72,7 +72,7 @@ class TestWiener(unittest.TestCase):
         time_units, sub_periods, num_paths, num_assets = 4, 12, 500_000, 3
         size = (time_units * sub_periods, num_paths, num_assets)
         rho = np.array([[1., .25, .5], [.25, 1., .75], [.5, .75, 1.]])
-        distribution = Wiener(size=size, rho=rho, sub_periods=sub_periods).generate_distribution()
+        distribution = Wiener(size=size, rho=rho, sub_periods=sub_periods).generate_ending_distribution()
         self.assertTrue(all(HelperWiener.calc_distribution_tests(distribution, mu=0, sigma=np.sqrt(time_units))))
 
     def test_consistency(self) -> None:
@@ -102,7 +102,7 @@ class TestGeometricBrownianMotion(unittest.TestCase):
         size = (time_units * sub_periods, num_paths)
         params = {'s0': 100, 'mu': .15, 'sigma': .20, 'q': .05}
 
-        distribution = GeometricBrownianMotion(size, **params, sub_periods=sub_periods).generate_distribution()
+        distribution = GeometricBrownianMotion(size, **params, sub_periods=sub_periods).generate_ending_distribution()
         self.assertTrue(all(HelperGBM.calc_distribution_tests(distribution, time_units, **params)))
 
     def test_gbm_3d_no_correlation(self) -> None:
@@ -144,7 +144,7 @@ class TestGeometricBrownianMotion(unittest.TestCase):
         params = {'s0': [100, 150, 50], 'mu': [.15, .10, .05], 'sigma': [.20, .10, .15], 'q': [.05, .02, .01]}
         rho = np.array([[1., .25, .5], [.25, 1., .75], [.5, .75, 1.]])
 
-        distribution = GeometricBrownianMotion(size, **params, rho=rho, sub_periods=sub_periods).generate_distribution()
+        distribution = GeometricBrownianMotion(size, **params, rho=rho, sub_periods=sub_periods).generate_ending_distribution()
         self.assertTrue(all(HelperGBM.calc_distribution_tests(distribution, time_units, **params)))
 
     def test_consistency(self) -> None:

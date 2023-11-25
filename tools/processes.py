@@ -363,7 +363,7 @@ class Wiener(StatisticalProcess):
         object.__setattr__(self, '_w_t', w_t)
         return w_t
 
-    def generate_distribution(self, num_points: int = 500_000) -> np.ndarray:
+    def generate_ending_distribution(self, num_points: int = 500_000) -> np.ndarray:
         """
         Method to calculate the output distribution at the last time step for the statistical process.
 
@@ -442,7 +442,7 @@ class GeometricBrownianMotion(StatisticalProcess):
         object.__setattr__(self, '_s_t', s_t)
         return s_t
 
-    def generate_distribution(self, num_points: int = 500_000) -> np.ndarray:
+    def generate_ending_distribution(self, num_points: int = 500_000) -> np.ndarray:
         """
         Method to calculate the output distribution at the last time step for the statistical process.
 
@@ -465,7 +465,7 @@ class GeometricBrownianMotion(StatisticalProcess):
             x_space = np.linspace(1e-10, 1 - 1e-10, num_points)
             s_t = lognorm(s=process_sigma, scale=process_scale).ppf(x_space)
         else:
-            w_t = Wiener(self.size, self.rho, self.sub_periods).generate_distribution(num_points)
+            w_t = Wiener(self.size, self.rho, self.sub_periods).generate_ending_distribution(num_points)
             drift = (self.mu - self.q - .5 * self.sigma ** 2) * time_units
             s_t = self.s0 * np.exp(drift + self.sigma * w_t)
         return s_t
