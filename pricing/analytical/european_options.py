@@ -205,7 +205,7 @@ class EuropeanCall(EuropeanOption):
         small changes in the price of the underlying (:math:`\\small \\displaystyle \\frac{\\partial V}{\\partial S}`).
         The delta of the European Call option is calculated as:
 
-        :math:`\\small \\displaystyle \\Delta = N(d_1)`
+        :math:`\\small \\displaystyle \\Delta = e^{-q t}N(d_1)`
 
         Where :math:`N(x)` represents the CDF of the standard Gaussian distribution and :math:`d_1` is defined in
         its own method.
@@ -213,7 +213,7 @@ class EuropeanCall(EuropeanOption):
         :return: Delta calculated for the European Call option.
         """
         d1 = self.get_d1()
-        delta = norm.cdf(d1) * exp(-self.q * self.t)
+        delta = exp(-self.q * self.t) * norm.cdf(d1)
         return delta
 
     def get_theta(self, periods: int = 1) -> float:
@@ -311,7 +311,7 @@ class EuropeanPut(EuropeanOption):
         small changes in the price of the underlying (:math:`\\small \\displaystyle \\frac{\\partial V}{\\partial S}`).
         The delta of the European Put option is calculated as:
 
-        :math:`\\small \\displaystyle \\Delta = N(d_1) - 1`
+        :math:`\\small \\displaystyle \\Delta = e^{-q t}(N(d_1) - 1)`
 
         Where :math:`N(x)` represents the CDF of the standard Gaussian distribution and :math:`d_1` is defined in
         its own method.
@@ -319,7 +319,7 @@ class EuropeanPut(EuropeanOption):
         :return: Delta calculated for the European Put option.
         """
         d1 = self.get_d1()
-        delta = (norm.cdf(d1) - 1) * exp(-self.q * self.t)
+        delta = exp(-self.q * self.t) * (norm.cdf(d1) - 1)
         return delta
 
     def get_theta(self, periods: int = 1) -> float:
