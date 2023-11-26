@@ -9,6 +9,8 @@ Currently, the following methodologies are implemented:
 - :func:`Forward() <pricing.analytical.forwards.Forward>`.
 - :func:`EuropeanCall() <pricing.analytical.european_options.EuropeanCall>`.
 - :func:`EuropeanPut() <pricing.analytical.european_options.EuropeanPut>`.
+- :func:`BinaryCall() <pricing.analytical.binary_options.BinaryCall>`.
+- :func:`BinaryPut() <pricing.analytical.binary_options.BinaryPut>`.
 
 .. _zero_coupon_bond:
 
@@ -32,6 +34,20 @@ Currently, the following methodologies are implemented:
     :inherited-members:
 
 .. autoclass:: pricing.analytical.european_options.EuropeanPut
+    :show-inheritance:
+    :members:
+    :special-members: __init__
+    :exclude-members: __str__, __setattr__
+    :inherited-members:
+
+.. autoclass:: pricing.analytical.binary_options.BinaryCall
+    :show-inheritance:
+    :members:
+    :special-members: __init__
+    :exclude-members: __str__, __setattr__
+    :inherited-members:
+
+.. autoclass:: pricing.analytical.binary_options.BinaryPut
     :show-inheritance:
     :members:
     :special-members: __init__
